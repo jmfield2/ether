@@ -41,6 +41,7 @@ import java.util.Locale;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.eclipse.jetty.server.Server;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -56,6 +57,8 @@ import org.tdod.ether.ta.player.PlayerConnectedEvent;
 import org.tdod.ether.ta.player.PlayerConnectedEventId;
 import org.tdod.ether.ta.player.PlayerConnection;
 import org.tdod.ether.ta.telnet.TelnetService;
+import org.tdod.ether.ta.web.EtherWebSocket;
+import org.tdod.ether.ta.web.EtherWebSocketService;
 import org.tdod.ether.taimpl.commands.DoDisband;
 import org.tdod.ether.taimpl.engine.jobs.ItemEffectJob;
 import org.tdod.ether.taimpl.engine.jobs.MobActivityJob;
@@ -83,6 +86,7 @@ public class DefaultGameEngine implements GameEngine {
 
    private static Log _log = LogFactory.getLog(DefaultGameEngine.class);
 
+   private Server _webSocketService = null;
    private TelnetService _telnetService = null;
    private Scheduler     _scheduler;
    private boolean       _shuttingDown = false;
@@ -112,6 +116,10 @@ public class DefaultGameEngine implements GameEngine {
 
          _telnetService = TelnetService.createTelnetD();
          _telnetService.start();
+
+         _webSocketService = EtherWebSocket.getInstance().getServer();
+         _webSocketService.start();
+
       }
    }
 
@@ -127,9 +135,9 @@ public class DefaultGameEngine implements GameEngine {
    public void handleConnectionEvent(PlayerConnectedEvent e) {
       if (e.getEventId().equals(PlayerConnectedEventId.Connected)) {
          _log.info("Got connection from "
-               + e.getShell().getConnection().getConnectionData().getHostName()
+               + e.getShell().getConnectionHostname()
                + " "
-               + e.getShell().getConnection().getConnectionData().getPort());
+               + e.getShell().getConnectionPort());
          PlayerConnection playerConnection = DefaultAppFactory.createDefaultPlayer(e);
          WorldManager.getPlayers().add(playerConnection);
       } else if (e.getEventId().equals(PlayerConnectedEventId.Disconnected)) {
@@ -322,7 +330,13 @@ public class DefaultGameEngine implements GameEngine {
       _shuttingDown = true;
       _telnetService.stop();
 
-      try {
+       try {
+           _webSocketService.stop();
+       } catch (Exception e) {
+           throw new RuntimeException(e);
+       }
+
+       try {
          _scheduler.shutdown();
       } catch (SchedulerException e) {
          _log.error(e);

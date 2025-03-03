@@ -54,6 +54,18 @@ public interface TaShell extends Shell {
     */
    Connection getConnection();
 
+   default String getConnectionHostname() {
+      return getConnection().getConnectionData().getHostName();
+   }
+
+   default int getConnectionPort() {
+      return getConnection().getConnectionData().getPort();
+   }
+
+   default long getConnectionId() {
+      return getConnection().getId();
+   }
+
    /**
     * Cleans up this Shell.
     * @param info any information to log when cleaning up this resource.

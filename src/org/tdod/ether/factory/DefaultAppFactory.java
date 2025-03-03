@@ -42,6 +42,8 @@ import org.tdod.ether.ta.output.GameOutput;
 import org.tdod.ether.ta.player.PlayerConnectedEvent;
 import org.tdod.ether.ta.player.PlayerConnection;
 import org.tdod.ether.ta.player.Vitality;
+import org.tdod.ether.ta.telnet.TaShell;
+import org.tdod.ether.ta.web.WebGameOutput;
 import org.tdod.ether.taimpl.combat.DefaultMeleeResult;
 import org.tdod.ether.taimpl.combat.DefaultSpellResult;
 import org.tdod.ether.taimpl.cosmos.DefaultWorld;
@@ -54,6 +56,7 @@ import org.tdod.ether.taimpl.player.DefaultPlayerConnection;
 import org.tdod.ether.taimpl.player.DefaultVitality;
 
 import com.meyling.telnet.shell.ShellIo;
+import org.tdod.ether.taimpl.websocket.WebSocketTaShell;
 
 /**
  * This is a factory class.
@@ -105,8 +108,13 @@ public final class DefaultAppFactory {
     *
     * @return a ShellOutput.
     */
-   public static GameOutput createShellOutput(ShellIo shellIo) {
-      return new ShellOutput(shellIo);
+   public static GameOutput createShellOutput(TaShell shell) {
+
+      if (shell instanceof WebSocketTaShell) {
+         return new WebGameOutput((WebSocketTaShell) shell);
+      }
+
+      return new ShellOutput(shell.getShellIo());
    }
 
    /**

@@ -71,10 +71,10 @@ public class DefaultPlayerConnection implements PlayerConnection {
     * @param e a PlayerConnectedEvent.
     */
    public DefaultPlayerConnection(PlayerConnectedEvent e) {
-      _connectionId = e.getShell().getConnection().getId();
+      _connectionId = e.getShell().getConnectionId();
       _shell = e.getShell();
       PlayerInputManager.getInstance().addPlayerInputListener(_connectionId, this);
-      _output = DefaultAppFactory.createShellOutput(e.getShell().getShellIo());
+      _output = DefaultAppFactory.createShellOutput(e.getShell());
       _player.setOutput(_output);
       _playerStateContext.setPlayerConnection(this);
       _output.print(getMotd());

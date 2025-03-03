@@ -65,6 +65,12 @@ public class DefaultLair implements Lair {
       _item = item;
    }
 
+   public DefaultLair() {
+      _mob = 0;
+      _numberOfMobs = 0;
+      _item = 0;
+   }
+
    /**
     * Gets the mob living in this lair.
     *

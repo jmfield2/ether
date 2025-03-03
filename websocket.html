@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>WebSocket Client</title>
+</head>
+<body>
+
+<h1>WebSocket Client</h1>
+
+<textarea id="messageArea" rows="4" cols="50" readonly></textarea><br>
+<input type="text" id="messageInput" placeholder="Enter message">
+<button onclick="sendMessage()">Send</button>
+
+<script>
+  let websocket;
+  const messageArea = document.getElementById('messageArea');
+  const messageInput = document.getElementById('messageInput');
+
+  function openWebSocket() {
+    // Replace with your WebSocket server URL
+    const serverUrl = "ws://localhost:8080/ether"; // e.g., ws://localhost:8080/mywebsocket
+
+    websocket = new WebSocket(serverUrl);
+
+    websocket.onopen = () => {
+      messageArea.value += "Connected to WebSocket server.\n";
+    };
+
+    websocket.onmessage = (event) => {
+      messageArea.value += "Received: " + event.data + "\n";
+    };
+
+    websocket.onerror = (error) => {
+      messageArea.value += "WebSocket error: " + error.message + "\n";
+    };
+
+    websocket.onclose = () => {
+      messageArea.value += "Disconnected from WebSocket server.\n";
+    };
+  }
+
+  function sendMessage() {
+    if (websocket && websocket.readyState === WebSocket.OPEN) {
+      const message = messageInput.value;
+      websocket.send(message);
+      messageArea.value += "Sent: " + message + "\n";
+      messageInput.value = ""; // Clear the input field
+    } else {
+      messageArea.value += "WebSocket connection is not open.\n";
+    }
+  }
+
+  // Open the WebSocket connection when the page loads
+  window.onload = openWebSocket;
+
+  // Optional: Close the WebSocket connection when the page is closed
+  window.onbeforeunload = () => {
+    if (websocket && websocket.readyState === WebSocket.OPEN) {
+      websocket.close();
+    }
+  };
+</script>
+
+</body>
+</html>

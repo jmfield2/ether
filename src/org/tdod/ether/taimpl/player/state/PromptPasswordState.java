@@ -67,7 +67,7 @@ public class PromptPasswordState implements PlayerState {
       for (PlayerConnection conn:WorldManager.getPlayers()) {
          if (conn.getPlayer().getName() != null 
              && conn.getPlayer().getName().equals(name)
-             && conn.getShell().getConnection().getId() != originalConnection.getShell().getConnection().getId()) {            
+             && conn.getShell().getConnectionId() != originalConnection.getShell().getConnectionId()) {
             return conn;
          }
       }

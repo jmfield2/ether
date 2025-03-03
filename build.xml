@@ -20,12 +20,14 @@
    <property name="emma.reports"   location="${emma.dir}/reports"/>  
    <property name="emma.coverage"  location="${emma.dir}/coverage" />  
    <property name="emma.instr"     location="${emma.dir}/instr" />  
+   <property name="jetty.version"  value="11.0.24" />
 
    <property name="test.dir"          value="test"/>
    <property name="test.src.dir"      value="${test.dir}/src"/>
    <property name="test.classes.dir"  value="${test.dir}/build/classes"/>
-	
-	<path id="project.classpath">
+
+
+    <path id="project.classpath">
 	    <pathelement location="${lib.dir}/commons-logging.jar"/>
 	    <pathelement location="${lib.dir}/log4j.jar"/>
        <pathelement location="${lib.dir}/pwts.jar"/>
@@ -62,7 +64,34 @@
        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath"/>
    </target>
 
-   <target name="jar" depends="compile">
+
+    <target name="retrieve-dependencies" description="Retrieves Jetty WebSocket dependencies">
+        <mkdir dir="${lib.dir}"/>
+
+        <get src="https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-server/${jetty.version}/jetty-server-${jetty.version}.jar" dest="${lib.dir}/jetty-server-${jetty.version}.jar" usetimestamp="true"/>
+        <get src="https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-servlet/${jetty.version}/jetty-servlet-${jetty.version}.jar" dest="${lib.dir}/jetty-servlet-${jetty.version}.jar" usetimestamp="true"/>
+        <get src="https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-util/${jetty.version}/jetty-util-${jetty.version}.jar" dest="${lib.dir}/jetty-util-${jetty.version}.jar" usetimestamp="true"/>
+        <get src="https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-io/${jetty.version}/jetty-io-${jetty.version}.jar" dest="${lib.dir}/jetty-io-${jetty.version}.jar" usetimestamp="true"/>
+        <get src="https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-http/${jetty.version}/jetty-http-${jetty.version}.jar" dest="${lib.dir}/jetty-http-${jetty.version}.jar" usetimestamp="true"/>
+        <get src="https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-annotations/${jetty.version}/jetty-annotations-${jetty.version}.jar" dest="${lib.dir}/jetty-annotations-${jetty.version}.jar" usetimestamp="true"/>
+        <get src="https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-security/${jetty.version}/jetty-security-${jetty.version}.jar" dest="${lib.dir}/jetty-security-${jetty.version}.jar" usetimestamp="true"/>
+
+        <get src="https://repo1.maven.org/maven2/org/eclipse/jetty/websocket/websocket-jetty-server/${jetty.version}/websocket-jetty-server-${jetty.version}.jar" dest="${lib.dir}/websocket-jetty-server-${jetty.version}.jar" usetimestamp="true"/>
+        <get src="https://repo1.maven.org/maven2/org/eclipse/jetty/websocket/websocket-jetty-client/${jetty.version}/websocket-jetty-client-${jetty.version}.jar" dest="${lib.dir}/websocket-jetty-client-${jetty.version}.jar" usetimestamp="true"/>
+        <get src="https://repo1.maven.org/maven2/org/eclipse/jetty/websocket/websocket-core-server/${jetty.version}/websocket-core-server-${jetty.version}.jar" dest="${lib.dir}/websocket-core-server-${jetty.version}.jar" usetimestamp="true"/>
+
+
+        <get src="https://repo1.maven.org/maven2/org/eclipse/jetty/websocket/websocket-jetty-api/${jetty.version}/websocket-jetty-api-${jetty.version}.jar" dest="${lib.dir}/websocket-jetty-api-${jetty.version}.jar" usetimestamp="true"/>
+        <get src="https://repo1.maven.org/maven2/org/eclipse/jetty/websocket/websocket-jakarta-server/${jetty.version}/websocket-jakarta-server-${jetty.version}.jar" dest="${lib.dir}/websocket-jakarta-server-${jetty.version}.jar" usetimestamp="true"/>
+
+        <get src="https://repo1.maven.org/maven2/jakarta/websocket/jakarta.websocket-api/2.0.0/jakarta.websocket-api-2.0.0.jar" dest="${lib.dir}/jakarta.websocket-api-2.0.0.jar" usetimestamp="true"/>
+        <get src="https://repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/5.0.0/jakarta.servlet-api-5.0.0.jar" dest="${lib.dir}/jakarta.servlet-api-5.0.0.jar" usetimestamp="true"/>
+
+        <get src="https://repo1.maven.org/maven2/org/apache/tomcat/embed/tomcat-embed-core/9.0.75/tomcat-embed-core-9.0.75.jar" dest="${lib.dir}/tomcat.embed.core-9.0.75.jar" usetimestamp="true"/>
+
+    </target>
+
+   <target name="jar" depends="retrieve-dependencies, compile">
        <buildnumber file="build.num"/>
        <tstamp>
          <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
