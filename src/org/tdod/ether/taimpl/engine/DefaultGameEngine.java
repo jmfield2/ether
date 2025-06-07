@@ -39,8 +39,10 @@ import java.util.Date;
 import java.util.Formatter;
 import java.util.Locale;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+// import org.apache.commons.logging.Log; // Removed
+// import org.apache.commons.logging.LogFactory; // Removed
+import org.slf4j.Logger; // Added
+import org.slf4j.LoggerFactory; // Added
 import org.eclipse.jetty.server.Server;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
@@ -58,7 +60,7 @@ import org.tdod.ether.ta.player.PlayerConnectedEventId;
 import org.tdod.ether.ta.player.PlayerConnection;
 import org.tdod.ether.ta.telnet.TelnetService;
 import org.tdod.ether.ta.web.EtherWebSocket;
-import org.tdod.ether.ta.web.EtherWebSocketService;
+// Unused import: import org.tdod.ether.ta.web.EtherWebSocketService;
 import org.tdod.ether.taimpl.commands.DoDisband;
 import org.tdod.ether.taimpl.engine.jobs.ItemEffectJob;
 import org.tdod.ether.taimpl.engine.jobs.MobActivityJob;
@@ -84,7 +86,7 @@ import org.tdod.ether.util.TaMessageManager;
  */
 public class DefaultGameEngine implements GameEngine {
 
-   private static Log _log = LogFactory.getLog(DefaultGameEngine.class);
+   private static Logger _log = LoggerFactory.getLogger(DefaultGameEngine.class); // Changed to SLF4J
 
    private Server _webSocketService = null;
    private TelnetService _telnetService = null;
@@ -144,10 +146,12 @@ public class DefaultGameEngine implements GameEngine {
          PlayerConnection disconnectedPlayerConn = null;
 
          for (PlayerConnection playerConn : WorldManager.getPlayers()) {
-            if (e.getShell().getConnection().getId() == playerConn.getShell()
-                  .getConnection().getId()) {
+            // Changed condition to direct shell comparison for safety with WebSockets
+            // and Telnet. WebSocketTaShell.getConnection() returns null, which would NPE.
+            // TaShell instances should be unique per connection.
+            if (e.getShell() == playerConn.getShell()) {
                disconnectedPlayerConn = playerConn;
-               continue;
+               break; // Found the connection, no need to continue loop
             }
          }
 
@@ -200,7 +204,11 @@ public class DefaultGameEngine implements GameEngine {
       }
 
       playerConn.cleanup();
-      playerConn = null;
+      // Setting to null here is not strictly necessary as playerConn is a local variable,
+      // but it does no harm. The PlayerConnection object itself will be removed from
+      // WorldManager.getPlayers() list within its own cleanup() method if designed that way,
+      // or it will simply be eligible for GC once no longer referenced.
+      // playerConn = null;
    }
 
    /**
@@ -235,8 +243,10 @@ public class DefaultGameEngine implements GameEngine {
          }
          buffer.append(split);
       } catch (Exception e) {
+         // In a production environment, consider more specific exception handling
+         // or logging framework.
          e.printStackTrace();
-         _log.error(e);
+         _log.error("Error generating job status: " + e.getMessage(), e);
       }
       return buffer.toString();
    }
@@ -257,6 +267,7 @@ public class DefaultGameEngine implements GameEngine {
             return df.format(date);
          }
       } catch (Exception e) {
+         // This catch block might be too broad. Consider specific exceptions.
          return "error";
       }
    }
@@ -325,21 +336,31 @@ public class DefaultGameEngine implements GameEngine {
          player.setDisconnected(true);
 
       }
+      // Ensure a null shell isn't passed if this event type doesn't need one or if it's a global event.
+      // For Disconnecting, a specific shell might not be relevant if it's a mass disconnect.
       PlayerConnectedManager.postPlayerConnectedEvent(PlayerConnectedEventId.Disconnecting, null);
 
       _shuttingDown = true;
-      _telnetService.stop();
+      if (_telnetService != null) {
+         _telnetService.stop();
+      }
 
        try {
-           _webSocketService.stop();
+           if (_webSocketService != null) {
+               _webSocketService.stop();
+           }
        } catch (Exception e) {
-           throw new RuntimeException(e);
+           _log.error("Error stopping WebSocket service: " + e.getMessage(), e);
+           // Depending on severity, might rethrow as RuntimeException
+           // throw new RuntimeException(e);
        }
 
        try {
-         _scheduler.shutdown();
+          if (_scheduler != null) {
+             _scheduler.shutdown();
+          }
       } catch (SchedulerException e) {
-         _log.error(e);
+         _log.error("Error shutting down scheduler: " + e.getMessage(), e);
       }
    }
 }

@@ -38,8 +38,10 @@ import java.util.ArrayList;
 
 import net.wimpi.telnetd.io.BasicTerminalIO;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+// import org.apache.commons.logging.Log; // Removed
+// import org.apache.commons.logging.LogFactory; // Removed
+import org.slf4j.Logger; // Added
+import org.slf4j.LoggerFactory; // Added
 import org.tdod.ether.ta.output.GameOutput;
 
 import com.meyling.telnet.shell.ShellIo;
@@ -50,7 +52,7 @@ import com.meyling.telnet.shell.ShellIo;
  */
 public class ShellOutput implements GameOutput {
 
-   private static Log _log = LogFactory.getLog(ShellOutput.class);
+   private static Logger _log = LoggerFactory.getLogger(ShellOutput.class); // Changed to SLF4J
 
    private ShellIo _shellIo;
 
@@ -95,7 +97,7 @@ public class ShellOutput implements GameOutput {
       try {
          _shellIo.setForegroundColor(BasicTerminalIO.WHITE);
       } catch (IOException e) {
-         _log.error(e, e);
+         _log.error("Error setting foreground color.", e);
       }
       write(s + "\n");
    }
@@ -108,7 +110,7 @@ public class ShellOutput implements GameOutput {
       try {
          _shellIo.setForegroundColor(BasicTerminalIO.WHITE);
       } catch (IOException e) {
-         _log.error(e, e);
+         _log.error("Error setting foreground color.", e);
       }
       write(s);
    }
@@ -125,7 +127,7 @@ public class ShellOutput implements GameOutput {
       try {
          _shellIo.setForegroundColor(BasicTerminalIO.WHITE);
       } catch (IOException e) {
-         _log.error(e, e);
+         _log.error("Error setting foreground color.", e);
       }
 
       CharSequence charSequence = "&";
@@ -140,7 +142,7 @@ public class ShellOutput implements GameOutput {
       CharacterIterator it = new StringCharacterIterator(str);
 
       StringBuffer buffer = new StringBuffer();
-      Integer color = Integer.valueOf(37);
+      Integer color = Integer.valueOf(37); // Default to WHITE (ANSI code)
       for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
          if (ch == '&') {
             char ch2 = it.next();
@@ -171,7 +173,7 @@ public class ShellOutput implements GameOutput {
          try {
             _shellIo.setForegroundColor(i);
          } catch (IOException e) {
-            _log.info("Got exception \"" + e.getClass() + "\" during output with message \"" + e.getMessage() + "\".");
+            _log.info("Got exception \"{}\" during output with message \"{}\".", e.getClass().getName(), e.getMessage());
          }
          write(subStr);
       }
@@ -179,7 +181,7 @@ public class ShellOutput implements GameOutput {
       try {
          _shellIo.setForegroundColor(BasicTerminalIO.WHITE);
       } catch (IOException e) {
-         _log.error(e, e);
+         _log.error("Error setting foreground color to white at end.", e);
       }
    }
 
@@ -217,6 +219,7 @@ public class ShellOutput implements GameOutput {
          color = BasicTerminalIO.WHITE;
          break;
       default:
+         // Keep default color (WHITE) if code is unrecognized
          break;
       }
 
@@ -229,7 +232,7 @@ public class ShellOutput implements GameOutput {
     */
    private void write(String s) {
       if (_shellIo == null) {
-         _log.fatal("ShellIo is null!");
+         _log.error("ShellIo is null!"); // Changed from fatal
          return;
       }
 
@@ -238,7 +241,7 @@ public class ShellOutput implements GameOutput {
          _shellIo.flush();
       } catch (IOException e) {
          // Don't log this as severe since this exception probably occurs when the pipe is broken.
-         _log.info("Got exception \"" + e.getClass() + "\" during output with message \"" + e.getMessage() + "\".");
+         _log.info("Got exception \"{}\" during output with message \"{}\".", e.getClass().getName(), e.getMessage());
       }
    }
 }

@@ -45,8 +45,10 @@ import net.wimpi.telnetd.shell.ShellManager;
 import net.wimpi.telnetd.util.PropertiesLoader;
 import net.wimpi.telnetd.util.StringUtil;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+// import org.apache.commons.logging.Log; // Removed
+// import org.apache.commons.logging.LogFactory; // Removed
+import org.slf4j.Logger; // Added
+import org.slf4j.LoggerFactory; // Added
 
 import com.meyling.telnet.startup.Loader;
 
@@ -56,7 +58,7 @@ import com.meyling.telnet.startup.Loader;
  */
 public final class TelnetService {
 
-   private static Log         _log = LogFactory.getLog(TelnetService.class);
+   private static Logger         _log = LoggerFactory.getLogger(TelnetService.class); // Changed to SLF4J
 
    /** The one and only instance of this telnet server. */
    private static TelnetService  _instance = null;
@@ -94,7 +96,7 @@ public final class TelnetService {
            Properties properties = PropertiesLoader.loadProperties(url);
            return createTelnetD(properties);
        } catch (IOException e) {
-          _log.fatal(e, e);
+          _log.error("Failed to load configuration file.", e); // Changed from fatal for SLF4J
           throw new BootException("Failed to load configuration file.");
        }
    }
@@ -171,8 +173,8 @@ public final class TelnetService {
        // use factory method for creating mgr singleton
        _shellManager = ShellManager.createShellManager(settings);
        if (_shellManager == null) {
-           _log.fatal("creation of shell manager failed");
-           System.exit(1);
+           _log.error("creation of shell manager failed"); // Changed from fatal for SLF4J
+           System.exit(1); // System.exit is generally discouraged; consider throwing BootException
        }
    }
 
@@ -198,11 +200,11 @@ public final class TelnetService {
            ServerSocket socket = new ServerSocket(port);
            socket.close();
        } catch (NumberFormatException e) {
-           _log.fatal(e, e);
+           _log.error("Failure while parsing port number for \"" + name + ".port\": " + e.getMessage(), e); // Changed from fatal
            throw new BootException("Failure while parsing port number for \"" + name + ".port\": "
                + e.getMessage());
        } catch (IOException e) {
-           _log.fatal(e, e);
+           _log.error("Failure while starting listener for port number " + port + ": " + e.getMessage(), e); // Changed from fatal
            throw new BootException("Failure while starting listener for port number " + port + ": "
                + e.getMessage());
        }
@@ -212,11 +214,9 @@ public final class TelnetService {
        try {
            _listeners.add(listener);
        } catch (Exception e) {
-           _log.fatal(e, e);
+           _log.error("Failure while starting PortListener thread: " + e.getMessage(), e); // Changed from fatal
            throw new BootException("Failure while starting PortListener thread: "
                + e.getMessage());
        }
-
    }
-
 }

@@ -1,0 +1,50 @@
+<configuration>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <!-- Original Log4j: %d Log4J [%t] %-5p %c{1} %x;%m%n -->
+      <!-- Logback equivalent: Adjust %c{1} to %logger{0} or %logger{1} if needed. Using %logger{36} as a common default. -->
+      <!-- NDC (%x) is not directly supported in the same way; use MDC (%X{key}) if needed. For now, omitting %x. -->
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} Logback [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>pwts_trace.txt</file>
+    <encoder>
+      <!-- Original Log4j: %d [%t] %-5p %c{1} %x;%m%n -->
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- daily rollover -->
+      <fileNamePattern>pwts_trace.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+      <!-- keep 30 days' worth of history -->
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+
+    <!-- Example for size-based rollover as well (can be combined or one chosen)
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+      <fileNamePattern>pwts_trace.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+      <maxFileSize>10MB</maxFileSize>
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>1GB</totalSizeCap>
+    </rollingPolicy>
+    -->
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE" />
+    <appender-ref ref="FILE" />
+  </root>
+
+  <!-- Example for specific package levels if needed later -->
+  <!--
+  <logger name="org.tdod.ether.taimpl.engine" level="DEBUG" additivity="false">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
+  </logger>
+  -->
+
+</configuration>

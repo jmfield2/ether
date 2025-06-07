@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -28,7 +27,33 @@
     };
 
     websocket.onmessage = (event) => {
-      messageArea.value += "Received: " + event.data + "\n";
+      try {
+        const data = JSON.parse(event.data);
+        if (data && data.command) { // Check if data and data.command exist
+          switch (data.command) {
+            case "clear_screen":
+              messageArea.value = ""; // Clear the textarea
+              // Optionally, add a message indicating the screen was cleared
+              // messageArea.value += "[Screen cleared]\n";
+              break;
+            case "hide_input":
+              messageInput.type = 'password';
+              break;
+            case "show_input":
+              messageInput.type = 'text';
+              break;
+            default:
+              // Unknown command, or other JSON data
+              messageArea.value += "Received JSON: " + event.data + "\n";
+          }
+        } else {
+          // If it's JSON but not our command structure
+          messageArea.value += "Received JSON: " + event.data + "\n";
+        }
+      } catch (e) {
+        // If parsing fails, it's not JSON, treat as plain text
+        messageArea.value += event.data; // For HTML colored text, don't add "Received: " or "\n"
+      }
     };
 
     websocket.onerror = (error) => {
@@ -44,12 +69,22 @@
     if (websocket && websocket.readyState === WebSocket.OPEN) {
       const message = messageInput.value;
       websocket.send(message);
-      messageArea.value += "Sent: " + message + "\n";
+      // Displaying sent messages can be handled by server echo if desired.
+      // If input is password type, you might not want to echo it here.
+      // For simplicity, we'll just clear the input field.
       messageInput.value = ""; // Clear the input field
     } else {
       messageArea.value += "WebSocket connection is not open.\n";
     }
   }
+
+  // Add event listener for 'Enter' key on the input field
+  messageInput.addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault(); // Prevent default form submission if it were in a form
+      sendMessage();
+    }
+  });
 
   // Open the WebSocket connection when the page loads
   window.onload = openWebSocket;
